@@ -5,7 +5,7 @@ import os
 def video_to_frames(path_output_dir, roll_no:str):
     # extract frames from a video and save to directory as 'x.png' where
     # x is the frame index
-    vidcap = cv2.VideoCapture('/home/ayushsharma/test/7.mp4')
+    vidcap = cv2.VideoCapture('/home/ayushsharma/test/8.mp4')
     count = 0
     while vidcap.isOpened():
         success, image = vidcap.read()

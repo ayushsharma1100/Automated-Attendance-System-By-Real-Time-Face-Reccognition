@@ -1,9 +1,8 @@
 import cv2
-import numpy as np
+import joblib
 import face_recognition
-import os
+import numpy
 
-path = "./images"
 names = {
     191891: "Ashwani",
     191907: "Joginder",
@@ -11,31 +10,31 @@ names = {
     191941: "Sudhanshu",
     191947: "Vanish",
 }
-images = []
-images_no = []
-mylist = os.listdir(path)
-encodeList = []
 
-for img in mylist:
-    curImg = cv2.imread(f"{path}/{img}")
-    image_to_encode = cv2.cvtColor(curImg, cv2.COLOR_BGR2RGB)
-    encode = face_recognition.face_encodings(image_to_encode)[0]
-    images_no.append(img.split()[0])
-    encodeList.append(encode)
-    with open("encoding.txt", "a") as encoding_file:
-        encoding_file.write(f"{encode} \n")
+image_no = joblib.load("image_name.sav")
+encodingsKnown = joblib.load("encoding.sav")
 
-# def find_encodings(images):
-#
-#     for img in images:
-#         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#         encode = face_recognition.face_encodings(img)[0]
-#         encodeList.append(encode)
-#         with open("encoding.txt", "a") as encoding_file:
-#             encoding_file.write(f"{encode} \n")
-#
-#     return encodeList
+cap = cv2.VideoCapture(0)
 
+while True:
+    success, img = cap.read()
+    imgS = cv2.resize(img, (0, 0), None, 0.25, 0.25)
+    imgS = cv2.cvtColor(imgS, cv2.COLOR_BGR2RGB)
 
-# encodeListKnown = find_encodings(images)
-print(len(encodeList))
+    facesCurFrame = face_recognition.face_locations(imgS)
+    encodesCurFrame = face_recognition.face_encodings(imgS, facesCurFrame)
+
+    for encodeFace, faceLoc in zip(encodesCurFrame, facesCurFrame):
+        matches = face_recognition.compare_faces(encodingsKnown, encodeFace)
+        # if(sum(matches) > 3 ) add more images and minimum 7 matches must be true.
+        # if sum(matches) <= 3:
+        #     continue
+        faceDis = face_recognition.face_distance(encodingsKnown, encodeFace)
+        print(faceDis)
+        matchIndex = numpy.argmin(faceDis)
+        if faceDis[matchIndex] > 0.5:
+            continue
+        if matches[matchIndex]:
+            roll_no = int(image_no[matchIndex])
+            name = names[roll_no].upper()
+            print(name)
